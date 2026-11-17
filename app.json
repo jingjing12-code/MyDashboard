@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "MyDashboardApp",
-    "slug": "MyDashboardApp",
+    "name": "MyDashboard",
+    "slug": "MyDashboard",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",

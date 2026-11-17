@@ -1,98 +1,61 @@
-import * as Device from 'expo-device';
-import { Platform, StyleSheet } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { useRouter } from 'expo-router';
+import { StyleSheet, Text, useWindowDimensions, View } from 'react-native';
+import AppCard from '../components/AppCard';
+import ScreenContainer from '../components/ScreenContainer';
+import { useApp } from '../context/AppContext';
+import { labs } from '../data/labs';
 
-import { AnimatedIcon } from '@/components/animated-icon';
-import { HintRow } from '@/components/hint-row';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { WebBadge } from '@/components/web-badge';
-import { BottomTabInset, MaxContentWidth, Spacing } from '@/constants/theme';
-
-function getDevMenuHint() {
-  if (Platform.OS === 'web') {
-    return <ThemedText type="small">use browser devtools</ThemedText>;
-  }
-  if (Device.isDevice) {
-    return (
-      <ThemedText type="small">
-        shake device or press <ThemedText type="code">m</ThemedText> in terminal
-      </ThemedText>
-    );
-  }
-  const shortcut = Platform.OS === 'android' ? 'cmd+m (or ctrl+m)' : 'cmd+d';
-  return (
-    <ThemedText type="small">
-      press <ThemedText type="code">{shortcut}</ThemedText>
-    </ThemedText>
-  );
-}
+const GAP = 12;
 
 export default function HomeScreen() {
+  const router = useRouter();
+  const { colors, userName, isDark } = useApp();
+  const { width } = useWindowDimensions();
+
+  // Responsive grid: 2 columns sa phone, 3 sa tablet/lapad nga screen
+  const columns = width >= 700 ? 3 : 2;
+  const cardWidth = (width - 32 - GAP * (columns - 1)) / columns;
+
   return (
-    <ThemedView style={styles.container}>
-      <SafeAreaView style={styles.safeArea}>
-        <ThemedView style={styles.heroSection}>
-          <AnimatedIcon />
-          <ThemedText type="title" style={styles.title}>
-            Welcome to&nbsp;Expo
-          </ThemedText>
-        </ThemedView>
+    <ScreenContainer>
+      <View style={[styles.hero, { backgroundColor: colors.primary }]}>
+        <Text style={[styles.hello, { color: colors.onPrimary }]}>
+          Welcome to MyDashboard, {userName} 👋
+        </Text>
+        <Text style={[styles.heroSub, { color: colors.onPrimary }]}>
+          {isDark ? 'Dark' : 'Light'} theme · {labs.length} labs available
+        </Text>
+      </View>
 
-        <ThemedText type="code" style={styles.code}>
-          get started
-        </ThemedText>
+      <Text style={[styles.section, { color: colors.text }]}>Dashboard</Text>
 
-        <ThemedView type="backgroundElement" style={styles.stepContainer}>
-          <HintRow
-            title="Try editing"
-            hint={<ThemedText type="code">src/app/index.tsx</ThemedText>}
+      <View style={styles.grid}>
+        {labs.map((lab) => (
+          <AppCard
+            key={lab.id}
+            icon={lab.icon}
+            title={lab.title}
+            subtitle={lab.description}
+            style={{ width: cardWidth }}
+            onPress={() => router.push(`/lab/${lab.id}` as any)}
           />
-          <HintRow title="Dev tools" hint={getDevMenuHint()} />
-          <HintRow
-            title="Fresh start"
-            hint={<ThemedText type="code">npm run reset-project</ThemedText>}
-          />
-        </ThemedView>
-
-        {Platform.OS === 'web' && <WebBadge />}
-      </SafeAreaView>
-    </ThemedView>
+        ))}
+        <AppCard
+          icon="⚙️"
+          title="Settings"
+          subtitle="Theme & profile"
+          style={{ width: cardWidth }}
+          onPress={() => router.push('/settings' as any)}
+        />
+      </View>
+    </ScreenContainer>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    flexDirection: 'row',
-  },
-  safeArea: {
-    flex: 1,
-    paddingHorizontal: Spacing.four,
-    alignItems: 'center',
-    gap: Spacing.three,
-    paddingBottom: BottomTabInset + Spacing.three,
-    maxWidth: MaxContentWidth,
-  },
-  heroSection: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    flex: 1,
-    paddingHorizontal: Spacing.four,
-    gap: Spacing.four,
-  },
-  title: {
-    textAlign: 'center',
-  },
-  code: {
-    textTransform: 'uppercase',
-  },
-  stepContainer: {
-    gap: Spacing.three,
-    alignSelf: 'stretch',
-    paddingHorizontal: Spacing.three,
-    paddingVertical: Spacing.four,
-    borderRadius: Spacing.four,
-  },
+  hero: { borderRadius: 20, padding: 20, marginBottom: 20 },
+  hello: { fontSize: 22, fontWeight: '800' },
+  heroSub: { fontSize: 14, marginTop: 4, opacity: 0.9 },
+  section: { fontSize: 18, fontWeight: '700', marginBottom: 12 },
+  grid: { flexDirection: 'row', flexWrap: 'wrap', gap: GAP },
 });
